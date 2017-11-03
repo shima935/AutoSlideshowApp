@@ -2,8 +2,10 @@ package jp.techacademy.kumiko.shima.autoslideshowapp;
 
 import android.Manifest;
 import android.content.ContentResolver;
+import android.content.ContentUris;
 import android.content.pm.PackageManager;
 import android.database.Cursor;
+import android.net.Uri;
 import android.os.Build;
 import android.provider.MediaStore;
 import android.support.v7.app.AppCompatActivity;
@@ -48,7 +50,7 @@ public class MainActivity extends AppCompatActivity {
                 // 許可されていないので許可ダイアログを表示する
                 requestPermissions(new String[]{Manifest.permission.READ_EXTERNAL_STORAGE}, PERMISSIONS_REQUEST_CODE);
             }
-            // Android5系以下の場合
+            // Android 5系以下の場合
         } else {
             getContentsInfo();
         }
@@ -67,7 +69,7 @@ public class MainActivity extends AppCompatActivity {
                 break;
         }
     }
-        //画像の情報
+        //画像の情報を取得
         private void getContentsInfo() {
             ContentResolver resolver = getContentResolver();
             Cursor cursor = resolver.query(
@@ -77,5 +79,17 @@ public class MainActivity extends AppCompatActivity {
                     null, // フィルタ用パラメータ
                     null // ソート (null ソートなし)
             );
+
+            if (cursor.moveToFirst()) {
+                do {
+                    // indexからIDを取得し、そのIDから画像のURIを取得する
+                    int fieldIndex = cursor.getColumnIndex(MediaStore.Images.Media._ID);
+                    Long id = cursor.getLong(fieldIndex);
+                    Uri imageUri = ContentUris.withAppendedId(MediaStore.Images.Media.EXTERNAL_CONTENT_URI, id);
+
+                    Log.d("ANDROID", "URI : " + imageUri.toString());
+                } while (cursor.moveToNext());
+            }
+            cursor.close();
         }
 }
