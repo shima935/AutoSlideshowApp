@@ -16,8 +16,10 @@ import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.TextView;
 
+import java.util.ArrayList;
 import java.util.Timer;
 import java.util.TimerTask;
+import java.util.logging.Handler;
 
 public class MainActivity extends AppCompatActivity {
 
@@ -30,6 +32,7 @@ public class MainActivity extends AppCompatActivity {
     Button mBackbutton;
     Timer mSlideCounter;
 
+    Cursor cursor;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -38,6 +41,14 @@ public class MainActivity extends AppCompatActivity {
 
         mStartButton = (Button) findViewById(R.id.start_button);
         mNextButton = (Button) findViewById(R.id.next_button);
+        mNextButton.setOnClickListener(new View.OnClickListener() {
+                                           @Override
+                                           public void onClick(View v) {
+                                               onClickNextButton();
+
+                                           }
+                                       });
+
         mBackbutton = (Button) findViewById(R.id.back_button);
         mImageView = (ImageView) findViewById(R.id.imageView);
 
@@ -72,7 +83,7 @@ public class MainActivity extends AppCompatActivity {
         //画像の情報を取得
         private void getContentsInfo() {
             ContentResolver resolver = getContentResolver();
-            Cursor cursor = resolver.query(
+            cursor = resolver.query(
                     MediaStore.Images.Media.EXTERNAL_CONTENT_URI, // データの種類
                     null, // 項目(null = 全項目)
                     null, // フィルタ条件(null = フィルタなし)
@@ -92,4 +103,22 @@ public class MainActivity extends AppCompatActivity {
             }
             cursor.close();
         }
+     private void onClickNextButton() {
+         if(cursor!= null){
+             //カーソルを次にすすめる。一番最後まで行ったら頭から。
+             if(cursor.moveToNext() == false){
+                 cursor.moveToFirst();
+             }
+              showImage();
+             }
+     }
+    private void showImage(){
+        //indexからIDを取得し、そのIDから画像のURIを取得
+        int fieldIndex = cursor.getColumnIndex(MediaStore.Images.Media._ID);
+        Long id = cursor.getLong(fieldIndex);
+        Uri imageUri = ContentUris.withAppendedId(MediaStore.Images.Media.EXTERNAL_CONTENT_URI, id);
+            mImageView.setImageURI(imageUri);
+
+    }
+
 }
